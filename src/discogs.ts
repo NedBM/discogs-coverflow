@@ -1,14 +1,25 @@
 import axios, { AxiosResponse } from 'axios';
 
+// const createApiClient = (token: string) => {
+//   return axios.create({
+//     baseURL: 'https://api.discogs.com/',
+//     headers: {
+//       'Authorization': `Discogs token=${token}`,
+//       'User-Agent': 'discogs_api_cf/1.0'
+//     }
+//   });
+// }
+
 const createApiClient = (token: string) => {
   return axios.create({
     baseURL: 'https://api.discogs.com/',
     headers: {
       'Authorization': `Discogs token=${token}`,
-      'User-Agent': 'discogs_api_cf/1.0'
-    }
+      'From': 'nedmooreiii@gmail.com', // Replace with your email or other identifier
+      'X-Requested-With': 'XMLHttpRequest',
+    },
   });
-}
+};
 
 export interface Artist {
   name: string;
@@ -36,7 +47,7 @@ export async function getCollection(token: string, username: string): Promise<Al
     const apiClient = createApiClient(token);
 
     const response: AxiosResponse<{ releases: any[] }> = await apiClient.get(
-      `users/${username}/collection/folders/0/releases?per_page=10`
+      `users/${username}/collection/folders/0/releases?per_page=5`
     );
     console.log("Request headers:", apiClient.defaults.headers);
 
