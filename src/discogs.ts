@@ -1,25 +1,25 @@
 import axios, { AxiosResponse } from 'axios';
 
-// const createApiClient = (token: string) => {
-//   return axios.create({
-//     baseURL: 'https://api.discogs.com/',
-//     headers: {
-//       'Authorization': `Discogs token=${token}`,
-//       'User-Agent': 'discogs_api_cf/1.0'
-//     }
-//   });
-// }
-
 const createApiClient = (token: string) => {
   return axios.create({
     baseURL: 'https://api.discogs.com/',
     headers: {
       'Authorization': `Discogs token=${token}`,
-      'From': 'nedmooreiii@gmail.com', // Replace with your email or other identifier
-      'X-Requested-With': 'XMLHttpRequest',
-    },
+      'User-Agent': 'discogs_api_cf/1.0'
+    }
   });
-};
+}
+
+// const createApiClient = (token: string) => {
+//   return axios.create({
+//     baseURL: 'https://api.discogs.com/',
+//     headers: {
+//       'Authorization': `Discogs token=${token}`,
+//       'From': 'ndnotic@gmail.com', // Replace with your email or other identifier
+//       'X-Requested-With': 'XMLHttpRequest',
+//     },
+//   });
+// };
 
 export interface Artist {
   name: string;

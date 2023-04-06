@@ -1,65 +1,14 @@
 import { useEffect, useState, useRef } from 'react'
-import { Album, getCollection } from './discogs';
-import styled from 'styled-components'
-
-const AlbumsContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  perspective: 1500px;
-  position: relative;
-`;
-
-const AlbumDiv = styled.div<{ selected: boolean; left: boolean; right: boolean }>`
-  transform-style: preserve-3d;
-  transition: all 0.5s ease;
-  cursor: pointer;
-  position: absolute;
-
-  ${({ selected }) => selected && 'transform: translateZ(200px);'}
-  ${({ left }) => left && 'transform: rotateY(40deg) translateX(-100px);'}
-  ${({ right }) => right && 'transform: rotateY(-40deg) translateX(100px);'}
-`;
-
-const AlbumImage = styled.img`
-  max-width: 200px;
-  max-height: 200px;
-`;
+import { Album, getCollection } from './discogs'; 
 
 
 function App() {
-  const [count, setCount] = useState(0)
   const [albums, setAlbums] = useState<Album[]>([]);
-  const [selectedAlbum, setSelectedAlbum] = useState<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isAlbumFlipped, setIsAlbumFlipped] = useState(false);
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
 
-  const updateCoverflow = (selectedIndex: number) => {
-    const albumElements = Array.from(document.querySelectorAll('.album'));
-    albumElements.forEach((element, index) => {
-      element.classList.remove('selected', 'left', 'right');
-  
-      if (index < selectedIndex) {
-        element.classList.add('left');
-      } else if (index === selectedIndex) {
-        element.classList.add('selected');
-      } else {
-        element.classList.add('right');
-      }
-    });
-  };
-
-  const handleOrientationChange = () => {
-    if (window.innerHeight > window.innerWidth) {
-      updateCoverflow(selectedAlbum);
-    } else {
-      // Revert to original layout if needed.
-    }
-  };
+  const carouselRef = useRef(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -70,47 +19,7 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    // window.addEventListener('resize', handleOrientationChange);
-    // return () => {
-    //   window.removeEventListener('resize', handleOrientationChange);
-    // };
   }, []);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.target as HTMLElement;
-    const center = container.clientWidth / 2;
-  
-    let selectedIndex: number = 0;
-    let minDistance = Number.MAX_VALUE;
-  
-    container.childNodes.forEach((node, index) => {
-      const rect = (node as HTMLElement).getBoundingClientRect();
-      const distance = Math.abs(rect.left + rect.width / 2 - center);
-  
-      if (distance < minDistance) {
-        minDistance = distance;
-        selectedIndex = index;
-      }
-    });
-  
-    setSelectedAlbum(selectedIndex);
-  };
-
-  const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && selectedAlbum !== null) {
-      setIsAlbumFlipped((prevIsFlipped) => !prevIsFlipped);
-    }
-  };
-
-  const handleAlbumClick = (index: number) => {
-    const container = containerRef.current;
-    const album = container?.childNodes[index] as HTMLElement;
-
-    if (album) {
-      album.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-      setSelectedAlbum(index);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -133,7 +42,6 @@ function App() {
             <label className="block text-md text-green-700">Discogs Username</label>
             <input
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
-              // id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -148,6 +56,9 @@ function App() {
               value={token}
               onChange={(e) => setToken(e.target.value)}
             />
+                <a 
+                href='https://www.discogs.com/settings/developers' target='_blank'
+                className="text-green-600 hover:text-green-500 text-sm hover:underline">Get a token</a>
           </div>
           <button 
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 "
@@ -157,37 +68,50 @@ function App() {
           </button>
         </form>
       </div>
-    </div>
-    </div>
+      </div>
     {loading ? (
-          <p className="text-center mt-4">Loading...</p>
+          <div role="status" className='text-center my-4'>
+          <svg aria-hidden="true" className="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-green-500" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span className ="sr-only">Loading...</span>
+      </div>
         ) : (
-          <AlbumsContainer className="albums-container mt-6" onScroll={handleScroll} ref={containerRef}>
-             {albums.map((album, index) => (
-        <AlbumDiv
-          key={album.id}
-          className={`album ${selectedAlbum === index ? 'selected' : ''}`}
-          onClick={() => handleAlbumClick(index)}
-          selected={selectedAlbum === index}
-          left={selectedAlbum > index}
-          right={selectedAlbum < index}
+          <div
+          ref={carouselRef}
+          className="flex overflow-x-scroll hide-scrollbar mt-4"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollSnapType: 'x mandatory',
+          }}
         >
-            <AlbumImage
-              src={album.basic_information.cover_image}
-              alt={album.basic_information.title}
-            />
-          <div className="album-info">
-            <h2>{album.basic_information.title}</h2>
-            <p>
-              {album.basic_information.artists
-                .map((artist) => artist.name)
-                .join(', ')}
-            </p>
-          </div>
-        </AlbumDiv>
-      ))}
-          </AlbumsContainer>
-        )}
+          {albums.map((album, index: number) => (
+            <div
+              key={album.id}
+              className="flex-shrink-0 w-64 m-2 bg-white rounded-md shadow-md"
+              style={{ scrollSnapAlign: 'start' }}
+            >
+              <img
+                src={album.basic_information.cover_image}
+                alt={album.basic_information.title}
+                className="w-full h-64 object-cover rounded-t-md"
+              />
+              <div className="p-4">
+                <h2 className="text-lg font-bold">
+                  {album.basic_information.title}
+                </h2>
+                <p className="text-gray-600">
+                  {album.basic_information.artists
+                    .map((artist) => artist.name)
+                    .join(', ')}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      </div>
     </div>
   )
 }
