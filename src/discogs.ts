@@ -47,7 +47,7 @@ export async function getCollection(token: string, username: string): Promise<Al
     const apiClient = createApiClient(token);
 
     const response: AxiosResponse<{ releases: any[] }> = await apiClient.get(
-      `users/${username}/collection/folders/0/releases?per_page=5`
+      `users/${username}/collection/folders/0/releases?per_page=10`
     );
     console.log("Request headers:", apiClient.defaults.headers);
 

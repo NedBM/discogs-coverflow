@@ -1,5 +1,42 @@
 import { useEffect, useState, useRef } from 'react'
 import { Album, getCollection } from './discogs'; 
+import styled from 'styled-components';
+
+const AlbumContainer = styled.ul`
+  padding: 0;
+  margin: 0;
+  perspective: 780px;
+  background-color: transparent;
+`;
+
+const AlbumList = styled.li`
+  text-indent: -9999px;
+  position: relative;
+  display: inline-block;
+  width: 200px;
+  height: 159px;
+  margin-right: -70px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  z-index: 50;
+  transform: rotateY(45deg);
+  transition: all 0.45s;
+  opacity: 0.8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 30px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: rotateY(0deg) scale(1.2);
+    opacity: 1;
+    z-index: 60 !important;
+  }
+
+  &.highlighted {
+    transform: rotateY(0deg) scale(1.2);
+    z-index: 55 !important;
+    opacity: 1;
+  }
+`;
 
 
 function App() {
@@ -7,6 +44,7 @@ function App() {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
+  const [highlightedAlbum, setHighlightedAlbum] = useState(-1);
 
   const carouselRef = useRef(null);
 
@@ -20,6 +58,16 @@ function App() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseOver = (index: number) => {
+    setHighlightedAlbum(index);
+  };
+
+  const handleMouseOut = () => {
+    setHighlightedAlbum(-1);
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,40 +125,59 @@ function App() {
           </svg>
           <span className ="sr-only">Loading...</span>
       </div>
-        ) : (
-          <div
-          ref={carouselRef}
-          className="flex overflow-x-scroll hide-scrollbar mt-4"
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollSnapType: 'x mandatory',
-          }}
-        >
-          {albums.map((album, index: number) => (
-            <div
-              key={album.id}
-              className="flex-shrink-0 w-64 m-2 bg-white rounded-md shadow-md"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <img
-                src={album.basic_information.cover_image}
-                alt={album.basic_information.title}
-                className="w-full h-64 object-cover rounded-t-md"
-              />
-              <div className="p-4">
-                <h2 className="text-lg font-bold">
-                  {album.basic_information.title}
-                </h2>
-                <p className="text-gray-600">
-                  {album.basic_information.artists
-                    .map((artist) => artist.name)
-                    .join(', ')}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+      ) : (
+        <div className='w-full items-center px-10 flex'>
+        <AlbumContainer>
+        {albums.map((album, index: number) => (
+          <AlbumList
+            key={album.id}
+            className={highlightedAlbum === index ? 'highlighted' : ''}
+            style={{
+              backgroundImage: `url(${album.basic_information.cover_image})`,
+              zIndex: highlightedAlbum === index ? 55 : 50,
+            }}
+            onMouseOver={() => handleMouseOver(index)}
+            onMouseOut={handleMouseOut}
+          >
+            {album.basic_information.title}
+          </AlbumList>
+        ))}
+      </AlbumContainer>
+      </div>
       )}
+        {/* // ) : (
+        //   <div
+        //   ref={carouselRef}
+        //   className="flex overflow-x-scroll hide-scrollbar mt-4"
+        //   style={{
+        //     WebkitOverflowScrolling: 'touch',
+        //     scrollSnapType: 'x mandatory',
+        //   }}
+        // >
+        //   {albums.map((album, index: number) => (
+        //     <div
+        //       key={album.id}
+        //       className="flex-shrink-0 w-64 m-2 bg-white rounded-md shadow-md"
+        //       style={{ scrollSnapAlign: 'start' }}
+        //     >
+        //       <img
+        //         src={album.basic_information.cover_image}
+        //         alt={album.basic_information.title}
+        //         className="w-full h-64 object-cover rounded-t-md"
+        //       />
+        //       <div className="p-4">
+        //         <h2 className="text-lg font-bold">
+        //           {album.basic_information.title}
+        //         </h2>
+        //         <p className="text-gray-600">
+        //           {album.basic_information.artists
+        //             .map((artist) => artist.name)
+        //             .join(', ')}
+        //         </p>
+        //       </div>
+        //     </div>
+        //   ))}
+        </div> */}
       </div>
     </div>
   )
